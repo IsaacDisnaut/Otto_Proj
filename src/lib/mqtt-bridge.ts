@@ -111,7 +111,15 @@ function configHint(cfg: MqttConfig): string | null {
     return `BROKER_URL ไม่ถูกรูปแบบ (${cfg.brokerUrl}) — ต้องเป็นแบบ mqtts://host:8883`;
   }
 
-  const isCloudBroker = /hivemq\.cloud$|hivemq\.com$/.test(host);
+  const isCloudBroker = /hivemq\.cloud$/.test(host);
+  const isLocal =
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '::1' ||
+    host.endsWith('.local') ||
+    /^10\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
 
   if (!cfg.secure && port !== null && TLS_PORTS.has(port)) {
     return `พอร์ต ${port} เป็นพอร์ตแบบเข้ารหัส แต่ BROKER_URL ใช้ mqtt:// — ต้องแก้เป็น mqtts://${host}:${port}`;
@@ -124,6 +132,14 @@ function configHint(cfg: MqttConfig): string | null {
   }
   if (isCloudBroker && !cfg.username) {
     return 'HiveMQ Cloud ต้องใส่ USERNAME และ PASSWORD — สร้างได้ที่เมนู Access Management ในหน้า console (แนะนำให้ใส่ในไฟล์ config/mqtt.local.txt)';
+  }
+
+  // broker ที่เปิดออกอินเทอร์เน็ตโดยไม่มีรหัสผ่าน = ใครก็สั่งหุ่นได้
+  if (!isLocal && !cfg.username) {
+    return `broker ${host} ไม่ได้อยู่ในวงแลน แต่ยังไม่ได้ตั้ง USERNAME/PASSWORD — ใครที่รู้ที่อยู่นี้ก็สั่งหุ่นได้ ควรเปิดการยืนยันตัวตนที่ broker หรือเข้าถึงผ่าน VPN`;
+  }
+  if (!isLocal && !cfg.secure) {
+    return `broker ${host} ไม่ได้อยู่ในวงแลน แต่ยังต่อแบบไม่เข้ารหัส (mqtt://) — รหัสผ่านและคำสั่งจะวิ่งเป็นข้อความเปล่าบนอินเทอร์เน็ต ควรเปิด TLS แล้วใช้ mqtts://`;
   }
   return null;
 }
@@ -169,7 +185,7 @@ export function ensureConnected(): Bridge {
 
   const cfg = b.config;
   const options: IClientOptions = {
-    // broker ส่วนใหญ่ (รวม HiveMQ Cloud) ต้องใช้ clientId ไม่ซ้ำกัน
+    // broker ส่วนใหญ่ต้องใช้ clientId ไม่ซ้ำกัน ไม่งั้นจะเตะ client ตัวเก่าออก
     clientId: `${cfg.clientId}-${Math.random().toString(16).slice(2, 8)}`,
     reconnectPeriod: 4000,
     connectTimeout: cfg.connectTimeoutMs,
@@ -180,7 +196,7 @@ export function ensureConnected(): Bridge {
   if (cfg.username) options.username = cfg.username;
   if (cfg.password) options.password = cfg.password;
 
-  // ต่อแบบเข้ารหัส เช่น HiveMQ Cloud (mqtts:// พอร์ต 8883)
+  // ต่อแบบเข้ารหัส (mqtts:// พอร์ต 8883) ใช้เวลา broker อยู่นอกวงแลน
   if (cfg.secure) {
     options.rejectUnauthorized = cfg.rejectUnauthorized;
     if (cfg.caFile) {

@@ -91,7 +91,7 @@ export interface MqttConfig {
   };
   qos: 0 | 1 | 2;
   retain: boolean;
-  /** true = ต่อแบบเข้ารหัส (mqtts:// หรือ wss://) เช่น HiveMQ Cloud */
+  /** true = ต่อแบบเข้ารหัส (mqtts:// หรือ wss://) ใช้เวลาข้ามเครือข่าย */
   secure: boolean;
   /** false = ยอมรับใบรับรองที่ตรวจไม่ผ่าน (ใช้กับ broker ที่ออกใบรับรองเอง) */
   rejectUnauthorized: boolean;
