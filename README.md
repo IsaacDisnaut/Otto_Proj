@@ -293,6 +293,3 @@ src/
     motions.ts        ← รายการคำสั่งท่าทาง 13 แบบ
     face-patterns.ts  ← ลายหน้า LED 16×8
 ```
-# Otto_IOT_Proj
-# Otto_IOT_Proj
-# Otto_IOT_Proj
