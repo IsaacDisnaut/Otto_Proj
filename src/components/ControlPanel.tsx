@@ -253,6 +253,20 @@ export default function ControlPanel({
             <dl className="topic-table">
               <dt>Broker</dt>
               <dd>{config?.mqtt.brokerUrl ?? '—'}</dd>
+              <dt>การเข้ารหัส</dt>
+              <dd>
+                {config?.mqtt.secure ? (
+                  <span className="chip ok">
+                    <i className="dot" /> TLS (ข้ามเครือข่ายได้)
+                  </span>
+                ) : (
+                  <span className="chip warn">
+                    <i className="dot" /> ไม่เข้ารหัส (ใช้ในวงแลน)
+                  </span>
+                )}
+              </dd>
+              <dt>บัญชีผู้ใช้</dt>
+              <dd>{config?.mqtt.hasCredentials ? '•••••• (ตั้งไว้แล้ว)' : '— ไม่ได้ใส่ —'}</dd>
               <dt>รับ · แชท</dt>
               <dd>{topics?.chatIn ?? '—'}</dd>
               <dt>รับ · สีหน้า</dt>

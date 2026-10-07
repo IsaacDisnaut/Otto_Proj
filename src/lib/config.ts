@@ -91,6 +91,16 @@ export interface MqttConfig {
   };
   qos: 0 | 1 | 2;
   retain: boolean;
+  /** true = ต่อแบบเข้ารหัส (mqtts:// หรือ wss://) เช่น HiveMQ Cloud */
+  secure: boolean;
+  /** false = ยอมรับใบรับรองที่ตรวจไม่ผ่าน (ใช้กับ broker ที่ออกใบรับรองเอง) */
+  rejectUnauthorized: boolean;
+  /** 4 = MQTT 3.1.1, 5 = MQTT 5 */
+  protocolVersion: 4 | 5;
+  /** ไฟล์ใบรับรอง CA (.pem) สำหรับ broker ที่ใช้ CA ของตัวเอง */
+  caFile: string;
+  keepalive: number;
+  connectTimeoutMs: number;
 }
 
 const num = (v: string | undefined, fallback: number) => {
@@ -156,8 +166,18 @@ export function getTtsConfig(): TtsConfig {
 export function getMqttConfig(): MqttConfig {
   const c = readConfigFile('mqtt');
   const qos = num(c.QOS, 0);
+  const brokerUrl = (c.BROKER_URL || 'mqtt://localhost:1883').trim();
+  const secure = /^(mqtts|wss|ssl|tls):/i.test(brokerUrl);
+  const version = num(c.PROTOCOL_VERSION, 4);
   return {
-    brokerUrl: (c.BROKER_URL || 'mqtt://localhost:1883').trim(),
+    brokerUrl,
+    secure,
+    rejectUnauthorized: bool(c.REJECT_UNAUTHORIZED, true),
+    protocolVersion: (version === 5 ? 5 : 4) as 4 | 5,
+    caFile: (c.CA_FILE || '').trim(),
+    keepalive: Math.max(10, num(c.KEEPALIVE, 60)),
+    // ต่อข้ามอินเทอร์เน็ตช้ากว่าในวงแลน จึงรอนานกว่าเดิม
+    connectTimeoutMs: Math.max(3000, num(c.CONNECT_TIMEOUT_MS, secure ? 20000 : 10000)),
     username: (c.USERNAME || '').trim(),
     password: (c.PASSWORD || '').trim(),
     clientId: (c.CLIENT_ID || 'ottobot-web').trim(),
@@ -198,6 +218,8 @@ export function getPublicConfig() {
     mqtt: {
       brokerUrl: mqtt.brokerUrl,
       clientId: mqtt.clientId,
+      secure: mqtt.secure,
+      hasCredentials: Boolean(mqtt.username),
       topics: mqtt.topics,
       qos: mqtt.qos,
       retain: mqtt.retain,

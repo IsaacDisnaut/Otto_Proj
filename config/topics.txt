@@ -146,3 +146,93 @@
 
   # ดูทุกอย่างที่วิ่งผ่าน broker
   mosquitto_sub -h localhost -t 'ottobot/#' -v
+
+
+===============================================================================
+  ต่อข้ามเครือข่ายด้วย HiveMQ Cloud — ตัวอย่างฝั่ง ESP32
+===============================================================================
+
+  เว็บกับหุ่นไม่ต้องอยู่วง WiFi เดียวกัน ทั้งสองฝั่งต่อออกอินเทอร์เน็ต
+  ไปเจอกันที่ broker กลางของ HiveMQ Cloud (TLS พอร์ต 8883)
+
+  หมายเหตุ: โค้ดด้านล่างเป็นแบบร่างให้เริ่มต้น ยังไม่ได้คอมไพล์ทดสอบกับบอร์ดจริง
+  ต้องติดตั้งไลบรารี PubSubClient ของ Nick O'Leary ก่อน
+
+  --------------------------------------------------------------------------
+  #include <WiFi.h>
+  #include <WiFiClientSecure.h>
+  #include <PubSubClient.h>
+
+  const char* WIFI_SSID = "ชื่อ WiFi";
+  const char* WIFI_PASS = "รหัส WiFi";
+
+  const char* MQTT_HOST = "xxxxxxxxxxxx.s1.eu.hivemq.cloud";
+  const int   MQTT_PORT = 8883;              // TLS เท่านั้น
+  const char* MQTT_USER = "ชื่อผู้ใช้ที่สร้างใน HiveMQ";
+  const char* MQTT_PASS = "รหัสผ่านที่สร้างใน HiveMQ";
+
+  WiFiClientSecure net;
+  PubSubClient mqtt(net);
+
+  void onMessage(char* topic, byte* payload, unsigned int len) {
+    String t = String(topic);
+    String body; body.reserve(len);
+    for (unsigned int i = 0; i < len; i++) body += (char)payload[i];
+
+    if (t == "ottobot/cmd") {
+      // body = {"motion":"walk","face":"happy","ts":...}
+      // แกะด้วย ArduinoJson แล้วเรียกฟังก์ชันท่าทางของคุณ
+      // ถ้าไม่มีคีย์ motion แปลว่าสั่งเปลี่ยนแค่สีหน้า
+    } else if (t == "ottobot/speech") {
+      // body = {"text":"สวัสดีครับ","face":"happy",...}  เอาไปเล่นเสียง
+    }
+  }
+
+  void connectMqtt() {
+    // ทางที่ง่ายสุด: ไม่ตรวจใบรับรองของ broker
+    // ปลอดภัยกว่า: ใช้ net.setCACert(root_ca) โดยใส่ root CA ของ Let's Encrypt
+    net.setInsecure();
+
+    mqtt.setServer(MQTT_HOST, MQTT_PORT);
+    mqtt.setCallback(onMessage);
+    mqtt.setBufferSize(512);      // ค่าเริ่มต้น 256 ไบต์ เล็กไปสำหรับข้อความพูด
+    mqtt.setKeepAlive(60);
+
+    while (!mqtt.connected()) {
+      // clientId ต้องไม่ซ้ำกับฝั่งเว็บ ไม่งั้นจะเตะกันหลุดสลับไปมา
+      String id = "ottobot-esp32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+      if (mqtt.connect(id.c_str(), MQTT_USER, MQTT_PASS)) {
+        mqtt.subscribe("ottobot/cmd");
+        mqtt.subscribe("ottobot/speech");
+      } else {
+        delay(2000);              // rc=5 แปลว่า user/pass ผิด, rc=-2 ต่อไม่ติด
+      }
+    }
+  }
+
+  void setup() {
+    Serial.begin(115200);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    while (WiFi.status() != WL_CONNECTED) delay(400);
+    connectMqtt();
+  }
+
+  void loop() {
+    if (!mqtt.connected()) connectMqtt();
+    mqtt.loop();                  // ต้องเรียกบ่อย ๆ ไม่งั้นจะหลุดการเชื่อมต่อ
+
+    // ส่งข้อความเข้ากล่องแชทบนเว็บ
+    // mqtt.publish("ottobot/chat/in", "สวัสดีครับ ผมได้ยินเสียงคุณแล้ว");
+
+    // รายงานสีหน้าปัจจุบัน / สถานะ
+    // mqtt.publish("ottobot/face/state", "happy");
+    // mqtt.publish("ottobot/status", "{\"battery\":88}");
+  }
+  --------------------------------------------------------------------------
+
+  ข้อควรรู้
+    - clientId ของหุ่นกับของเว็บต้องไม่ซ้ำกัน ไม่งั้น broker จะเตะตัวเก่าออก
+      แล้วทั้งสองฝั่งจะหลุดสลับไปมาไม่หยุด
+    - แพ็กเกจฟรีของ HiveMQ Cloud จำกัดที่ 100 การเชื่อมต่อ และ 10 GB ต่อเดือน
+      ซึ่งเหลือเฟือสำหรับหุ่นหนึ่งตัวกับเว็บหนึ่งหน้า
+    - ถ้าเน็ตสะดุดบ่อย ตั้ง QOS = 1 ในไฟล์ config/mqtt.txt เพื่อกันข้อความหาย

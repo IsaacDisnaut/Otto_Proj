@@ -91,7 +91,9 @@ VOICE    = th-TH-PremwadeeNeural
 
 ### ตั้งค่า MQTT
 
-เปิดไฟล์ [`config/mqtt.txt`](config/mqtt.txt):
+เปิดไฟล์ [`config/mqtt.txt`](config/mqtt.txt)
+
+**แบบที่ 1 — ในวงแลนเดียวกัน (Mosquitto)**
 
 ```ini
 BROKER_URL = mqtt://localhost:1883
@@ -99,7 +101,36 @@ USERNAME   =
 PASSWORD   =
 ```
 
-เว็บเชื่อมต่อ broker **จากฝั่งเซิร์ฟเวอร์ (Node.js)** ผ่าน TCP 1883 ตามปกติ
+**แบบที่ 2 — ข้ามเครือข่ายด้วย HiveMQ Cloud (ฟรี)** ⭐
+
+เว็บกับหุ่นไม่ต้องอยู่วง WiFi เดียวกัน ต่อออกอินเทอร์เน็ตไปเจอกันที่ broker กลาง
+
+1. สมัครที่ [console.hivemq.cloud](https://console.hivemq.cloud) เลือกแพ็กเกจ **Serverless** (ฟรี)
+2. สร้าง cluster แล้วคัดลอก hostname มา เช่น `xxxxxxxxxxxx.s1.eu.hivemq.cloud`
+3. เมนู **Access Management** → สร้าง username + password
+4. กรอกลงไฟล์:
+
+```ini
+BROKER_URL = mqtts://xxxxxxxxxxxx.s1.eu.hivemq.cloud:8883
+USERNAME   = ชื่อผู้ใช้ที่สร้างไว้
+PASSWORD   = รหัสผ่านที่สร้างไว้
+QOS        = 1
+```
+
+> ⚠️ HiveMQ Cloud รับการเชื่อมต่อแบบ **TLS พอร์ต 8883 เท่านั้น** ต้องใช้ `mqtts://` ไม่ใช่ `mqtt://`
+> ถ้าพิมพ์ผิด เว็บจะขึ้นข้อความบอกวิธีแก้ให้ทันที
+>
+> 🔒 **ห้ามใส่รหัสผ่านจริงใน `config/mqtt.txt` ถ้าจะ push ขึ้น git**
+> ให้สร้าง `config/mqtt.local.txt` ใส่แค่ `USERNAME` กับ `PASSWORD`
+> ไฟล์ `.local.txt` อยู่ใน `.gitignore` และจะทับค่าในไฟล์หลักให้อัตโนมัติ
+
+ฝั่งหุ่น (ESP32) ต้องต่อไปที่ host / พอร์ต / บัญชีเดียวกัน และเปิด TLS
+ดูโค้ดตัวอย่างได้ที่ท้ายไฟล์ [`config/topics.txt`](config/topics.txt)
+
+ตัวเลือกเพิ่มเติมสำหรับการต่อแบบเข้ารหัส: `PROTOCOL_VERSION` (4 หรือ 5), `KEEPALIVE`,
+`CONNECT_TIMEOUT_MS`, `REJECT_UNAUTHORIZED` และ `CA_FILE` (สำหรับ broker ที่ออกใบรับรองเอง)
+
+เว็บเชื่อมต่อ broker **จากฝั่งเซิร์ฟเวอร์ (Node.js)** ผ่าน TCP ตามปกติ
 จึง **ไม่ต้อง** เปิด listener แบบ WebSocket ใน Mosquitto และไม่มีปัญหา CORS
 เบราว์เซอร์รับข้อความต่อผ่าน Server-Sent Events ที่ `/api/mqtt/stream`
 
