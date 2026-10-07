@@ -91,7 +91,7 @@ VOICE    = th-TH-PremwadeeNeural
 
 ### ตั้งค่า MQTT
 
-เปิดไฟล์ [`config/mqtt.txt`](config/mqtt.txt)  ถ้าไม่มีให้สร้าง
+เปิดไฟล์ [`config/mqtt.txt`](config/mqtt.txt)  ถ้าไม่มีให้สร้างใหม่
 
 **แบบที่ 1 — ในวงแลนเดียวกัน (Mosquitto)**
 
