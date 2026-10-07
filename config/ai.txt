@@ -1,0 +1,33 @@
+# ===================================================================
+#  ตั้งค่า Generative AI  (ไฟล์ข้อความธรรมดา - แก้ไขแล้วกด "โหลดค่าใหม่" บนเว็บ)
+#  รูปแบบ: KEY = VALUE   (บรรทัดที่ขึ้นต้นด้วย # คือคอมเมนต์)
+# ===================================================================
+
+# URL ของผู้ให้บริการ AI (รองรับมาตรฐาน OpenAI-compatible /chat/completions)
+# ตัวอย่าง:
+#   PROVIDER_URL = https://api.openai.com/v1/chat/completions
+#   PROVIDER_URL = https://openrouter.ai/api/v1/chat/completions
+#   PROVIDER_URL = http://localhost:11434/v1/chat/completions      (Ollama)
+#   PROVIDER_URL = http://localhost:1234/v1/chat/completions       (LM Studio)
+PROVIDER_URL = https://openrouter.ai/api/v1/chat/completions
+
+# ชื่อโมเดลที่จะใช้ เช่น gpt-4o-mini, llama3.2, qwen2.5:7b
+MODEL = qwen/qwen3.8-max-0902
+
+# API key (ถ้าผู้ให้บริการไม่ต้องใช้ ปล่อยว่างไว้ได้ เช่น Ollama / LM Studio)
+API_KEY =
+
+# ความสร้างสรรค์ของคำตอบ 0.0 - 2.0
+TEMPERATURE = 0.7
+
+# จำนวน token สูงสุดของคำตอบ
+MAX_TOKENS = 800
+
+# จำนวนข้อความย้อนหลังที่ส่งให้ AI เป็นบริบท
+HISTORY_LIMIT = 12
+
+# หมดเวลารอคำตอบ (มิลลิวินาที)
+TIMEOUT_MS = 60000
+
+# บุคลิกของหุ่นยนต์ (ต่อท้าย system prompt หลัก) - แก้ได้ตามใจชอบ
+PERSONA = คุณคือ "ออตโต้" หุ่นยนต์ตัวน้อยที่ร่าเริง เป็นมิตร ขี้เล่น และชอบช่วยเหลือ พูดภาษาไทยแบบเป็นกันเอง ตอบสั้น กระชับ ไม่เกิน 2-3 ประโยค
