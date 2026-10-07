@@ -1,0 +1,44 @@
+# ===================================================================
+#  Caddy - ตัวรับหน้าเว็บ ทำ HTTPS ให้อัตโนมัติ
+#  ติดตั้งที่ /etc/caddy/Caddyfile
+#
+#  *** แทน YOUR_DOMAIN ด้วยชื่อโดเมนจริงของคุณ ***
+#  เช่น ottobot-xxxx.southeastasia.cloudapp.azure.com
+#
+#  Caddy จะขอใบรับรองจาก Let's Encrypt ให้เองตอนเริ่มทำงานครั้งแรก
+#  ต้องเปิดพอร์ต 80 ไว้ด้วย เพราะ Let's Encrypt ใช้ตรวจว่าโดเมนเป็นของคุณจริง
+# ===================================================================
+
+YOUR_DOMAIN {
+	# ---- ช่อง SSE ที่ส่งข้อความ MQTT มาให้เบราว์เซอร์ ----
+	# ห้าม buffer และห้ามบีบอัด ไม่งั้นข้อความจากหุ่นจะค้างไม่ยอมโผล่
+	@sse path /api/mqtt/stream
+	route @sse {
+		reverse_proxy 127.0.0.1:3000 {
+			flush_interval -1
+		}
+	}
+
+	# ---- ที่เหลือทั้งหมด ----
+	route {
+		encode zstd gzip
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	header {
+		# กันหน้าเว็บถูกฝังใน iframe ของคนอื่น
+		X-Frame-Options "SAMEORIGIN"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# บังคับ https ไว้ 1 ปี (เอาออกถ้ายังทดลองอยู่)
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/ottobot.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

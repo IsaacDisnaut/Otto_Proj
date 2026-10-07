@@ -22,6 +22,10 @@
 
 ## เริ่มใช้งาน
 
+> ☁️ อยากรันบนเซิร์ฟเวอร์จริงให้เข้าถึงได้จากทุกที่? ดู [`deploy/README.md`](deploy/README.md)
+> — รันทั้งเว็บและ HiveMQ บน Azure VM เครื่องเดียว พร้อม HTTPS อัตโนมัติ
+> (**จำเป็น** เพราะเบราว์เซอร์ให้ใช้ไมโครโฟนเฉพาะบน HTTPS หรือ localhost)
+
 ```bash
 npm install
 npm run dev          # โหมดพัฒนา → http://localhost:3000
@@ -267,6 +271,7 @@ config/
   ai.txt              ← ตั้งค่า AI (ข้อ 3)
   tts.txt             ← ตั้งค่า API เสียงพูดภาษาไทย
   mqtt.txt            ← ตั้งค่า broker และชื่อ topic
+deploy/               ← ชุดติดตั้งบน Azure VM (Bicep, systemd, Caddy)
 src/
   app/
     page.tsx          ← หน้าหลัก รวมทุกส่วนเข้าด้วยกัน

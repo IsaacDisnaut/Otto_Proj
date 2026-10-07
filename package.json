@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start:prod": "next start -H 127.0.0.1 -p 3000"
   },
   "dependencies": {
     "mqtt": "5.14.1",
@@ -20,5 +21,8 @@
     "@types/react": "19.1.9",
     "@types/react-dom": "19.1.7",
     "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=20.9"
   }
 }

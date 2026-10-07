@@ -1,0 +1,39 @@
+# เว็บออตโต้บอท - รับหน้าโดย Caddy จึง bind แค่ 127.0.0.1
+# ติดตั้งที่ /etc/systemd/system/ottobot-web.service
+[Unit]
+Description=Ottobot control web app (Next.js)
+Documentation=https://github.com/IsaacDisnaut/Otto_IOT_Proj
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ottobot
+Group=ottobot
+WorkingDirectory=/opt/ottobot
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start:prod
+Restart=always
+RestartSec=5
+# ให้เวลาปิดช่อง SSE และตัดการเชื่อมต่อ MQTT ให้เรียบร้อยก่อน
+TimeoutStopSec=20
+KillSignal=SIGTERM
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ottobot-web
+
+# --- ลดสิทธิ์ให้เหลือเท่าที่จำเป็น ---
+NoNewPrivileges=true
+# แยก /tmp ของตัวเอง ไฟล์เสียงชั่วคราวของ TTS จะอยู่ในนี้
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+# เขียนได้แค่โฟลเดอร์ config เพื่อให้แก้ค่าแล้วกด "โหลดค่าใหม่" บนเว็บได้
+ReadWritePaths=/opt/ottobot/config
+
+[Install]
+WantedBy=multi-user.target
