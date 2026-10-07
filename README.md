@@ -91,7 +91,7 @@ VOICE    = th-TH-PremwadeeNeural
 
 ### ตั้งค่า MQTT
 
-เปิดไฟล์ [`config/mqtt.txt`](config/mqtt.txt)
+เปิดไฟล์ [`config/mqtt.txt`](config/mqtt.txt)  ถ้าไม่มีให้สร้าง
 
 **แบบที่ 1 — ในวงแลนเดียวกัน (Mosquitto)**
 
@@ -293,5 +293,4 @@ src/
     motions.ts        ← รายการคำสั่งท่าทาง 13 แบบ
     face-patterns.ts  ← ลายหน้า LED 16×8
 ```
-# Otto_Proj
-# Otto_Proj
+
