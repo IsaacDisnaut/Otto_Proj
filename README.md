@@ -294,3 +294,4 @@ src/
     face-patterns.ts  ← ลายหน้า LED 16×8
 ```
 # Otto_Proj
+# Otto_Proj
